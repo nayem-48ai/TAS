@@ -1,5 +1,6 @@
 ---
 name: tas
+version: 1.0.0
 description: >-
   Convert text into spoken audio AND transcribe audio/video back into text and
   subtitles using the Speakee API. This skill does BOTH text-to-speech (TTS:
