@@ -4,6 +4,19 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project uses semantic
 versioning.
 
+## [2.3.1] — 2026-11-10
+
+### Fixed
+
+- **Single voice by default.** `conversation` no longer treats incidental
+  `Word:` lines (`Note:`, `Summary:`, `Q:`, `A:`, etc.) as speakers. Without
+  `--map`, if the script has fewer than two distinct speakers or fewer than
+  three labelled lines, it synthesizes everything with one narrator voice
+  and prints a warning. Use `tts` for plain text.
+- **Clearer mode choice.** SKILL.md now tells the agent to default to
+  `tts` (one voice) for all non-dialogue text, and `conversation` only for
+  real 2+ speaker scripts.
+
 ## [2.3.0] — 2026-11-10
 
 ### Added

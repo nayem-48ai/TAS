@@ -372,11 +372,16 @@ CI runs the offline self-test on Python 3.9, 3.11, and 3.13
 
 **Does it need an API key?** No.
 
-**Can it do multiple speakers?** Yes — `conversation` with `--map` or automatic
-voice assignment, parallel synthesis, one stitched file. Lines with no
-`Speaker:` prefix are the narrator/commenter and use a **3rd** voice via the
-special `narrator` key. If two speakers share a voice, the script prints a
-`WARNING` — map each speaker to a different voice.
+**Can it do multiple speakers?** Yes — but only for a real dialogue. `tts` is
+the default and always uses one voice; use it for articles, stories, emails,
+and any prose (even text with `Note:` / `Summary:` / `Q:` lines). Use
+`conversation` when two or more `Speaker:` labels actually alternate. Without
+`--map` it falls back to a single narrator voice (with a warning) if it finds
+fewer than two speakers or fewer than three labelled lines. With `--map` it
+assigns distinct voices, synthesizes in parallel, and stitches one file. Lines
+with no `Speaker:` prefix are the narrator/commenter and use a **3rd** voice
+via the special `narrator` key. If two speakers share a voice, the script
+prints a `WARNING` — map each speaker to a different voice.
 
 **What about long articles?** Automatic chunking at sentence boundaries with
 per-chunk caching and merging.

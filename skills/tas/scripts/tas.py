@@ -1612,6 +1612,18 @@ def cmd_conversation(args):
     detect = not getattr(args, "no_emotion", False)
     authored = parse_script(args.script, known, raw=args.raw,
                             keep_markers=detect)
+    if not mapping:
+        label_lines = [lab for lab, _ in authored if lab is not None]
+        distinct = set(label_lines)
+        if len(distinct) < 2 or len(label_lines) < 3:
+            warn("Not enough multi-speaker dialogue detected — using one "
+                 "voice. Use `tts` for plain text, or --map to force "
+                 "speaker voices.")
+            if len(distinct) == 1 and len(label_lines) == 1:
+                authored = parse_script(args.script, set(), raw=args.raw,
+                                        keep_markers=detect)
+            else:
+                authored = [(None, text) for _, text in authored]
     segs = []
     for label, rawtext in authored:
         if detect:

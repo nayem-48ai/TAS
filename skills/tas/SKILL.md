@@ -67,13 +67,34 @@ The skill is **name `tas`** — load it with the name `tas`, never `tts`.
     correct Bengali.
 12. **Use `--json`** when another tool or script consumes the result.
 
+## Single voice first — pick the right mode
+
+**Most requests are one speaker reading text, so `tts` is the default.** Use
+`conversation` only when the source really is a multi-speaker dialogue.
+
+Use **`tts` (one voice)** for articles, stories, emails, messages, documents,
+answers, notes, or any prose. Text with incidental `Word:` lines (`Note:`,
+`Summary:`, `Q:`, `A:`, `Warning:`) is still plain text — those are not
+speakers.
+
+Use **`conversation` (multiple voices)** only when **all** of these are true:
+
+1. each turn starts with a `Speaker:` label (e.g. `Alice: …`, `মানুষ: …`);
+2. **two or more distinct speakers** alternate, with at least 3 labelled lines;
+3. the user wants different voices per speaker (or the text is an
+   interview/dialogue).
+
+When unsure, use `tts` with one voice. Without `--map`, `conversation` itself
+falls back to a single narrator voice when it finds fewer than two real
+speakers, and prints a warning. `--map` always overrides this check.
+
 ## Commands
 
 | Command | Purpose |
 |---|---|
-| `tts` | synthesize one text block (TTS) |
+| `tts` | synthesize one text block — **default for all non-dialogue text** |
 | `uid` | synthesize with a custom voice UID (`language=uid`) |
-| `conversation` | multi-speaker dialogue → one stitched, verified MP3 |
+| `conversation` | multi-speaker dialogue only (2+ alternating speakers) → one stitched, verified MP3 |
 | `stt` | transcribe an audio/video file → text (+ optional SRT/VTT) |
 | `transcribe` | alias for `stt` |
 | `subtitle` | transcribe and write an SRT |
@@ -109,7 +130,7 @@ Single speaker:
 python3 "$S" tts "আপনার টেক্সট" -l bn -o out.mp3
 python3 "$S" tts --text-file article.md -l en --preset news -o article.mp3
 ```
-Dialogue:
+Dialogue (only for a real 2+ speaker script — never for plain text):
 ```bash
 python3 "$S" conversation dialog.txt -l bn \
   --map "মানুষ=Nayem,AI=Pooja - Everyday Assistant" \
@@ -207,7 +228,11 @@ AI: আপনার প্রশ্নটি গ্রহণ করা হয়
   is mapped with the special key `narrator`, so a 3rd distinct voice is
   `--map "narrator=VoiceC,মানুষ=VoiceA,AI=VoiceB"`.
 - `--map "speaker=voice"` accepts a voice name (fuzzy) or UUID.
-- Without `--map`, distinct voices are assigned automatically.
+- Without `--map`, the script first checks for a real dialogue. If there are
+  fewer than 2 distinct speakers or fewer than 3 labelled lines, it falls back
+  to **one narrator voice** and prints a warning — plain text belongs in `tts`.
+- Without `--map` and with a real dialogue, distinct voices are assigned
+  automatically.
 - **Voices must be distinct.** If two speakers resolve to the same voice, the
   script prints a `WARNING`; map each speaker to a different voice. Always give
   the AI and the human different voices (and a 3rd voice for the narrator when a
