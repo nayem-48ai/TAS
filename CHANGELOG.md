@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project uses semantic
 versioning.
 
+## [2.3.2] — 2026-11-10
+
+### Added
+
+- **manifest.json** in `tas.skill` for Claude Code manual installation.
+
 ## [2.3.1] — 2026-11-10
 
 ### Fixed
