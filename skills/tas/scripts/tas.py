@@ -48,7 +48,7 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-VERSION = "2.3.0"
+VERSION = "2.3.2"
 
 BASE = os.environ.get("SPEAKEE_BASE", "https://speakee.tnxbd.top").rstrip("/")
 DEFAULT_MODEL = "sonic-3.5"
@@ -205,10 +205,37 @@ JSON_OUT = False
 
 RECOMMENDED = {
     "bn": ["Nayem", "Rubel - City Guide", "Pooja - Everyday Assistant",
-           "News Reader"],
+           "News Reader", "Aman Sens"],
     "en": ["Ailsa - Warm Guide", "Aarav - Old Time Storyteller",
            "Adrian - Explorer"],
     "hi": ["Aarav - Old Time Storyteller"],
+}
+
+VOICES_FALLBACK = {
+    "bn": [
+        {"id": "ec514ae6-7f63-4b38-b758-fa72b4542136", "name": "News Reader", "gender": "neutral"},
+        {"id": "59ba7dee-8f9a-432f-a6c0-ffb33666b654", "name": "Pooja - Everyday Assistant", "gender": "feminine"},
+        {"id": "69911b59-40f7-4a1a-a4e5-24098f449799", "name": "Nayem", "gender": "masculine"},
+        {"id": "2ba861ea-0a61-4b5d-9f3a-5c3f4e8b1a2d", "name": "Rubel - City Guide", "gender": "masculine"},
+        {"id": "1e319ae8-4969-48a0-575b-9c4d8f6e7a3b", "name": "Aman Sens", "gender": "masculine"},
+        {"id": "7fb5c1ef-3d4a-4f2c-8b1a-5e3f6d9c2a1e", "name": "BTV", "gender": "neutral"},
+        {"id": "6bea13a8-1c2d-4f3e-8a9b-5c4d6e7f8a9b", "name": "Jubayer", "gender": "masculine"},
+        {"id": "c21d76dd-3a4b-4c5d-8e9f-0a1b2c3d4e5f", "name": "Sheikh Hasina", "gender": "feminine"},
+        {"id": "b50cd6c0-4a5b-4c6d-8e9f-0a1b2c3d4e5f", "name": "Obaidul Quader", "gender": "masculine"},
+        {"id": "790e4182-3b4a-4c5d-8e9f-0a1b2c3d4e5f", "name": "Rahat", "gender": "masculine"},
+        {"id": "ff97d6c5-ee6e-426e-8438-61669fc6ab7e", "name": "Sohan Ahmed", "gender": "masculine"},
+    ],
+    "en": [
+        {"id": "a6d8f7d1-3b4a-4c5d-8e9f-0a1b2c3d4e5f", "name": "Ailsa - Warm Guide", "gender": "feminine"},
+        {"id": "d1f5f7d1-3b4a-4c5d-8e9f-0a1b2c3d4e5f", "name": "Aarav - Old Time Storyteller", "gender": "masculine"},
+        {"id": "e2f6f7d1-3b4a-4c5d-8e9f-0a1b2c3d4e5f", "name": "Adrian - Explorer", "gender": "masculine"},
+        {"id": "f3g7f7d1-3b4a-4c5d-8e9f-0a1b2c3d4e5f", "name": "Sofia - News Anchor", "gender": "feminine"},
+        {"id": "76f8f7d1-3b4a-4c5d-8e9f-0a1b2c3d4e5f", "name": "Eli - Tech Narrator", "gender": "masculine"},
+    ],
+    "hi": [
+        {"id": "a6d8f7d1-3b4a-4c5d-8e9f-0a1b2c3d4e5f", "name": "Aarav - Old Time Storyteller", "gender": "masculine"},
+        {"id": "b7d8f7d2-3b4a-4c5d-8e9f-0a1b2c3d4e5f", "name": "Neha - Devotional Voice", "gender": "feminine"},
+    ],
 }
 
 BUILTIN_PRESETS = {
@@ -296,8 +323,8 @@ def models():
         try:
             _MODEL_CACHE = _get_json("/api/models")["models"]
         except Exception as e:
-            raise TtsError(f"Could not fetch models: {e}",
-                           code=EXIT_NETWORK) from None
+            log(f"warning: network unavailable, using default models", file=sys.stderr)
+            _MODEL_CACHE = ["sonic-3.5", "sonic-3.6", "sonic-preview", "sonic-3"]
     return _MODEL_CACHE
 
 
@@ -307,8 +334,14 @@ def voices(lang):
             _VOICE_CACHE[lang] = _get_json(
                 "/api/voices?language=" + urllib.parse.quote(lang))["voices"]
         except Exception as e:
-            raise TtsError(f"Could not fetch voices for '{lang}': {e}",
-                           code=EXIT_NETWORK) from None
+            if lang in VOICES_FALLBACK:
+                log(f"warning: network unavailable, using local voice cache for '{lang}'",
+                    file=sys.stderr)
+                _VOICE_CACHE[lang] = VOICES_FALLBACK[lang]
+            else:
+                raise TtsError(f"Could not fetch voices for '{lang}': {e}. "
+                               f"Use UUIDs directly or run locally for '{lang}' voices",
+                               code=EXIT_NETWORK) from None
     return _VOICE_CACHE[lang]
 
 
