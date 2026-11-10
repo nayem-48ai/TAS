@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.pyo
+*.skill
+!tts.skill
+.DS_Store
+out/
+examples/out/
+*.part
+tts.zip

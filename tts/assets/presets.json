@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "description": "Curated voice presets per language. Add your own: pick voices from `tts.py voices -l <code>`.",
+  "presets": {
+    "news": {
+      "description": "Clear, neutral news-reader delivery",
+      "voices": {
+        "bn": "News Reader",
+        "en": "Ailsa - Warm Guide",
+        "hi": "Aarav - Old Time Storyteller"
+      },
+      "speed": 1.2,
+      "emotion": "neutral"
+    },
+    "story": {
+      "description": "Warm storytelling pace",
+      "voices": {
+        "bn": "Rubel - City Guide",
+        "en": "Aarav - Old Time Storyteller"
+      },
+      "speed": 1.0,
+      "emotion": "neutral"
+    },
+    "assistant": {
+      "description": "Friendly everyday assistant",
+      "voices": {
+        "bn": "Pooja - Everyday Assistant",
+        "en": "Ailsa - Warm Guide"
+      },
+      "speed": 1.25,
+      "emotion": "neutral"
+    },
+    "audiobook": {
+      "description": "Slow, even audiobook narration",
+      "voices": {
+        "bn": "Nayem",
+        "en": "Aarav - Old Time Storyteller"
+      },
+      "speed": 1.0,
+      "emotion": "neutral"
+    }
+  }
+}
