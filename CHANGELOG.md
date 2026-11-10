@@ -4,6 +4,21 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project uses semantic
 versioning.
 
+## [2.2.0] — 2026-11-10
+
+### Changed
+
+- **Renamed the skill from `TTS` to `TAS`** (Text And Speech). Skill folder is
+  now `skills/tas/`, the skill `name` is `tas`, the CLI is `scripts/tas.py`,
+  and the install artifacts are `tas.skill` / `tas.zip`. The skill still does
+  both text-to-speech (`TTS` command) and speech-to-text (`STT` command) — the
+  new name just reflects both directions.
+- **Online installation** from GitHub: `npx skills add nayem-48ai/TAS` and
+  `git clone https://github.com/nayem-48ai/TAS.git`. README install section
+  now leads with these one-liners.
+- Cache directory renamed `~/.cache/speakee-tts` → `~/.cache/speakee-tas`;
+  user agent `speakee-tts-skill` → `speakee-tas-skill`.
+
 ## [2.1.0] — 2026-11-10
 
 ### Added
@@ -42,11 +57,11 @@ versioning.
   `references/troubleshooting.md`.
 - Repo packaging: README, LICENSE, CONTRIBUTING, CHANGELOG, VERSION,
   `scripts/selftest.sh`, `scripts/build-skill.sh`, `scripts/package.sh`,
-  `tts.skill`.
+  `tas.skill`.
 - Public-release readiness: independent-project disclaimer, privacy /
   responsible-use / limitations sections, `SECURITY.md`, and GitHub Actions
   offline CI on Python 3.9/3.11/3.13.
-- `.gitignore` keeps the installable `tts.skill` while ignoring build zips.
+- `.gitignore` keeps the installable `tas.skill` while ignoring build zips.
 - Examples: Bengali dialogue, long English article, demo audio.
 
 ### Changed

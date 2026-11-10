@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Speakee TTS + STT CLI — professional speech in both directions.
+"""TAS CLI — Speakee speech in both directions (text-to-speech + speech-to-text).
 
 Text-to-speech: 40+ languages, 100+ voices, custom voice UID, long-text
 chunking, dialogue synthesis, caching/resume, ffmpeg stitching and audio QA.
@@ -24,7 +24,7 @@ Commands:
 
 Environment:
   SPEAKEE_BASE        API base URL (default: https://speakee.tnxbd.top)
-  SPEAKEE_CACHE       cache directory (default: ~/.cache/speakee-tts)
+  SPEAKEE_CACHE       cache directory (default: ~/.cache/speakee-tas)
   SPEAKEE_CHUNK_LIMIT max characters per TTS request (default: 1200)
 """
 from __future__ import annotations
@@ -48,7 +48,7 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-VERSION = "2.1.0"
+VERSION = "2.2.0"
 
 BASE = os.environ.get("SPEAKEE_BASE", "https://speakee.tnxbd.top").rstrip("/")
 DEFAULT_MODEL = "sonic-3.5"
@@ -57,7 +57,7 @@ DEFAULT_SPEED = 1.2
 DEFAULT_LANG = "en"
 CHUNK_LIMIT = int(os.environ.get("SPEAKEE_CHUNK_LIMIT", "1200"))
 CACHE_DIR = Path(os.environ.get("SPEAKEE_CACHE",
-                                Path.home() / ".cache" / "speakee-tts"))
+                                Path.home() / ".cache" / "speakee-tas"))
 SKILL_ROOT = Path(__file__).resolve().parent.parent
 
 STT_MAX_UPLOAD = 3_500_000
@@ -155,7 +155,7 @@ _VOICE_CACHE = {}
 
 def _get_json(path, timeout=30):
     req = urllib.request.Request(BASE + path,
-                                 headers={"User-Agent": f"speakee-tts-skill/{VERSION}"})
+                                 headers={"User-Agent": f"speakee-tas-skill/{VERSION}"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return json.load(r)
 
@@ -361,7 +361,7 @@ def synthesize(text, language, model, voice_id, fmt, speed, volume, emotion,
             req = urllib.request.Request(
                 BASE + "/api/tts", data=body,
                 headers={"Content-Type": "application/json",
-                         "User-Agent": f"speakee-tts-skill/{VERSION}"})
+                         "User-Agent": f"speakee-tas-skill/{VERSION}"})
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 ctype = r.headers.get("Content-Type", "")
                 data = r.read()
@@ -816,7 +816,7 @@ def stt_upload(path, language="auto", word_timestamps=True, timeout=300,
             req = urllib.request.Request(
                 BASE + "/api/stt", data=body,
                 headers={"Content-Type": ctype,
-                         "User-Agent": f"speakee-tts-skill/{VERSION}"})
+                         "User-Agent": f"speakee-tas-skill/{VERSION}"})
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 raw = r.read()
             try:
@@ -1605,7 +1605,7 @@ def cmd_voices(args, suggest=False):
 
 def main():
     parser = argparse.ArgumentParser(
-        prog="tts.py",
+        prog="tas.py",
         description="Speakee TTS + STT — speech synthesis, transcription, "
                     "and subtitles.",
         epilog="Exit codes: 0 ok, 1 error, 2 usage, 3 validation, "

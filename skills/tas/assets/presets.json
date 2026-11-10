@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "description": "Curated voice presets per language. Add your own: pick voices from `tts.py voices -l <code>`.",
+  "description": "Curated voice presets per language. Add your own: pick voices from `tas.py voices -l <code>`.",
   "presets": {
     "news": {
       "description": "Clear, neutral news-reader delivery",

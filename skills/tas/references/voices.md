@@ -3,7 +3,7 @@
 ## Discover
 
 ```bash
-S=/path/to/tts/scripts/tts.py
+S=/path/to/skills/tas/scripts/tas.py
 python3 "$S" languages           # 43 codes
 python3 "$S" voices  -l en       # 393 voices for English
 python3 "$S" suggest -l bn       # recommended voices marked

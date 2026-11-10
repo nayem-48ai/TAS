@@ -1,11 +1,11 @@
 #!/bin/sh
-# Self-test for the TTS skill. Offline by default; pass --online for a smoke
+# Self-test for the TAS skill. Offline by default; pass --online for a smoke
 # synthesis + QA + JSON check (uses the free API).
 set -u
 export PYTHONDONTWRITEBYTECODE=1
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-S="$ROOT/tts/scripts/tts.py"
+S="$ROOT/skills/tas/scripts/tas.py"
 fail=0
 
 ok() { printf 'ok   %s\n' "$1"; }

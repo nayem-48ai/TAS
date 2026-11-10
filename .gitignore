@@ -2,9 +2,9 @@ __pycache__/
 *.pyc
 *.pyo
 *.skill
-!tts.skill
+!tas.skill
 .DS_Store
 out/
 examples/out/
 *.part
-tts.zip
+tas.zip

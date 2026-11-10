@@ -2,7 +2,7 @@
 
 Base URL: `https://speakee.tnxbd.top` (override with `SPEAKEE_BASE`).
 
-All calls are made by `scripts/tts.py`; this file documents what the script
+All calls are made by `scripts/tas.py`; this file documents what the script
 does so failures can be diagnosed without reading all 1,100 lines.
 
 ## Endpoints
@@ -101,7 +101,7 @@ Lower `--workers` if 429s persist. The service is free — be polite.
 ## Cache layout
 
 ```
-~/.cache/speakee-tts/
+~/.cache/speakee-tas/
 ├── segments/<sha256>.<fmt>   # one file per chunk
 └── merged/<sha256>.<fmt>     # merged long-text outputs
 ```
@@ -151,5 +151,5 @@ ebur128=peak=true,astats=metadata=1:reset=0,silencedetect=noise=-40dB:d=1.5
 | Variable | Default | Purpose |
 |---|---|---|
 | `SPEAKEE_BASE` | `https://speakee.tnxbd.top` | API host |
-| `SPEAKEE_CACHE` | `~/.cache/speakee-tts` | cache directory |
+| `SPEAKEE_CACHE` | `~/.cache/speakee-tas` | cache directory |
 | `SPEAKEE_CHUNK_LIMIT` | `1200` | default chunk size |

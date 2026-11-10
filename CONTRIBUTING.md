@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for improving the TTS skill. Keep changes small, tested, and documented.
+Thanks for improving the TAS skill. Keep changes small, tested, and documented.
 
 ## Ground rules
 
@@ -16,7 +16,7 @@ Thanks for improving the TTS skill. Keep changes small, tested, and documented.
 
 ## Add a preset
 
-1. Pick a voice with `python3 tts/scripts/tts.py voices -l <code>`.
+1. Pick a voice with `python3 skills/tas/scripts/tas.py voices -l <code>`.
 2. Add it to `tts/assets/presets.json`:
 
 ```json
@@ -31,13 +31,13 @@ Thanks for improving the TTS skill. Keep changes small, tested, and documented.
 3. Check it:
 
 ```bash
-python3 tts/scripts/tts.py presets
-python3 tts/scripts/tts.py tts "Test." -l en --preset mybrand --dry-run
+python3 skills/tas/scripts/tas.py presets
+python3 skills/tas/scripts/tas.py tts "Test." -l en --preset mybrand --dry-run
 ```
 
 ## Add a recommended voice
 
-Edit `RECOMMENDED` in `tts/scripts/tts.py` and the table in
+Edit `RECOMMENDED` in `skills/tas/scripts/tas.py` and the table in
 `tts/references/voices.md`. Verify the exact name with `voices -l <code>`.
 
 ## Test
@@ -52,10 +52,10 @@ CI runs `scripts/selftest.sh` on Python 3.9, 3.11, and 3.13 — keep it green.
 Manual checks before a PR:
 
 ```bash
-python3 tts/scripts/tts.py tts "Hello" -l en -o /tmp/t.mp3
-python3 tts/scripts/tts.py verify /tmp/t.mp3
-python3 tts/scripts/tts.py conversation examples/dialog-bn.txt -l bn --dry-run
-python3 tts/scripts/tts.py tts --text-file examples/article-en.md -l en --dry-run
+python3 skills/tas/scripts/tas.py tts "Hello" -l en -o /tmp/t.mp3
+python3 skills/tas/scripts/tas.py verify /tmp/t.mp3
+python3 skills/tas/scripts/tas.py conversation examples/dialog-bn.txt -l bn --dry-run
+python3 skills/tas/scripts/tas.py tts --text-file examples/article-en.md -l en --dry-run
 ```
 
 ## Style
@@ -69,8 +69,8 @@ python3 tts/scripts/tts.py tts --text-file examples/article-en.md -l en --dry-ru
 ## Rebuild the install artifact
 
 ```bash
-scripts/build-skill.sh   # tts.skill only
-scripts/package.sh       # tts.skill + tts.zip
+scripts/build-skill.sh   # tas.skill only
+scripts/package.sh       # tas.skill + tas.zip
 ```
 
-Commit `tts.skill` only when the skill contents changed.
+Commit `tas.skill` only when the skill contents changed.

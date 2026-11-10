@@ -31,7 +31,7 @@
 - **Agent tries to `pip install whisper`** – **do not allow it.** The bundled
   script does STT entirely through the Speakee API with the Python standard
   library. No local model, no download, no pip. Point the agent at
-  `scripts/tts.py stt`.
+  `scripts/tas.py stt`.
 
 ## Common failure modes to avoid
 

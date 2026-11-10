@@ -1,5 +1,5 @@
 ---
-name: tts
+name: tas
 description: >-
   Convert text into spoken audio AND transcribe audio/video back into text and
   subtitles using the Speakee API. This skill does BOTH text-to-speech (TTS:
@@ -18,7 +18,7 @@ description: >-
 license: MIT
 ---
 
-# TTS & STT — Speech in Both Directions (Speakee API)
+# TAS — Text & Speech, in Both Directions (Speakee API)
 
 One script does **both** directions:
 
@@ -31,12 +31,12 @@ Everything is done by the bundled script — **never re-implement it inline and
 NEVER install anything** (no whisper, no torch, no faster-whisper, no pip):
 
 ```
-<skill base dir>/scripts/tts.py
+<skill base dir>/scripts/tas.py
 ```
 
 Typical install locations:
-`~/.config/opencode/skills/tts/scripts/tts.py` (opencode) and
-`~/.claude/skills/tts/scripts/tts.py` (Claude Code).
+`~/.config/opencode/skills/tas/scripts/tas.py` (opencode) and
+`~/.claude/skills/tas/scripts/tas.py` (Claude Code).
 
 ## Non-negotiable rules (apply to EVERY request)
 
@@ -131,7 +131,7 @@ out.mp3 — 2.8s, 0.04 MB, QA PASS (-18.9 LUFS, peak -4.2 dBFS)
 Do not paste raw JSON unless asked.
 
 ### Step 6 — Reuse
-Re-runs hit the cache (`~/.cache/speakee-tts`). Use `--force` to regenerate,
+Re-runs hit the cache (`~/.cache/speakee-tas`). Use `--force` to regenerate,
 `cache-clear` to wipe.
 
 ---
@@ -243,7 +243,7 @@ AI: আপনার প্রশ্নটি গ্রহণ করা হয়
 
 ## Caching and safety
 
-- Segments are cached by content hash in `~/.cache/speakee-tts`; re-runs and
+- Segments are cached by content hash in `~/.cache/speakee-tas`; re-runs and
   retries resume automatically.
 - Temporary concat files are always removed; `--no-cache` temp dirs are cleaned
   on exit.

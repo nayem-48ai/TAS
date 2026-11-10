@@ -3,7 +3,7 @@
 Run these from the repo root. `S` points at the bundled script.
 
 ```bash
-S=tts/scripts/tts.py
+S=skills/tas/scripts/tas.py
 ```
 
 ## 1. Single voice
@@ -55,7 +55,7 @@ python3 "$S" uid "Cloned voice test." -v <voice-uuid> -o out/cloned.mp3
 Transcribe an audio or video file into text with SRT/WebVTT subtitles. Long recordings are split into ~120 s chunks automatically, each re-encoded to 16 kHz mono 64 kbps MP3 so uploads stay under the ~4.5 MB API cap. Word timestamps are optional (SRT timing falls back to per-character estimates when disabled). Language is auto-detected from the first chunk, then reused; pass `-l <code>` if the result looks wrong (auto-detection can be unreliable on short clips).
 
 ```bash
-S=tts/scripts/tts.py
+S=skills/tas/scripts/tas.py
 
 # Transcribe and write an SRT next to the input
 python3 "$S" subtitle demo.mp3 -l en --srt demo.srt

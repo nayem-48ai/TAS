@@ -11,7 +11,7 @@ security problem.
 - This skill is a client for a third-party API. It stores **no credentials**
   and requires **no API key**.
 - Never commit secrets, tokens, private text, or private audio to the repo.
-- The cache (`~/.cache/speakee-tts`) contains generated audio and text hashes.
+- The cache (`~/.cache/speakee-tas`) contains generated audio and text hashes.
   If the source text is private, treat the cache as private too.
 - `--base` / `SPEAKEE_BASE` can point at any host; only use hosts you trust.
   Text is sent to that host in plain JSON.
