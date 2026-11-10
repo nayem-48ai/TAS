@@ -4,6 +4,23 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project uses semantic
 versioning.
 
+## [2.2.2] — 2026-11-10
+
+### Added
+
+- **Install by Prompt**: a copy-paste prompt in the README that installs the
+  skill on *any* AI agent (clone → place → verify → report) without Node or
+  `npx`. Works with opencode, Claude Code, Cursor, Codex, and others.
+
+### Changed
+
+- **Professional README**: the demo section now has live `<audio>` players and
+  collapsible `<details>` blocks; a method picker table leads the install
+  section; demo stats show real duration/size/QA values.
+- Removed the "Cartesia" brand from the README; the project is now described
+  as an unofficial client for the free TNxBD Studio (Speakee) API with Sonic
+  models only.
+
 ## [2.2.1] — 2026-11-10
 
 ### Added
