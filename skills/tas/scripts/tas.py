@@ -48,7 +48,7 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-VERSION = "2.2.2"
+VERSION = "2.3.0"
 
 BASE = os.environ.get("SPEAKEE_BASE", "https://speakee.tnxbd.top").rstrip("/")
 DEFAULT_MODEL = "sonic-3.5"
@@ -80,6 +80,120 @@ UUID_RE = re.compile(r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-"
                      r"[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
 SPEAKER_RE = re.compile(r"^([^\s:]{1,16})\s*:\s*(.*)$")
 SENTENCE_SPLIT_RE = re.compile(r"(?<=[।.!?…])\s+|\n+")
+
+# Emotions accepted by the API. Inline [Tag] markers and emoji are mapped to
+# these names and applied per sentence (see parse_emotion_blocks).
+EMOTIONS = frozenset({
+    "neutral", "calm", "angry", "content", "sad", "scared",
+    "affectionate", "agitated", "alarmed", "amazed", "anticipation",
+    "anxious", "apologetic", "bored", "confident", "confused",
+    "contemplative", "contempt", "curious", "dejected", "determined",
+    "disappointed", "disgusted", "distant", "elated", "enthusiastic",
+    "envious", "euphoric", "excited", "flirtatious", "frustrated",
+    "grateful", "guilty", "happy", "hesitant", "hurt", "insecure",
+    "ironic", "mad", "melancholic", "mysterious", "nostalgic",
+    "outraged", "panicked", "peaceful", "proud", "rejected", "resigned",
+    "sarcastic", "serene", "skeptical", "surprised", "sympathetic",
+    "threatened", "tired", "triumphant", "trust", "wistful",
+})
+
+EMOJI_EMOTION = {
+    # happy / joyful
+    "😀": "happy", "😃": "happy", "😄": "happy", "😁": "happy",
+    "😆": "happy", "😊": "happy", "🙂": "happy", "😂": "happy",
+    "🤣": "happy", "😹": "happy", "😇": "content", "😌": "serene",
+    "☺": "content",
+    # love / affection
+    "🥰": "affectionate", "😍": "affectionate", "🤗": "affectionate",
+    "❤": "affectionate", "💕": "affectionate", "💖": "affectionate",
+    "😻": "affectionate",
+    # playful
+    "😘": "flirtatious", "😉": "flirtatious", "😏": "sarcastic",
+    "🙄": "sarcastic",
+    # excited
+    "🤩": "excited", "🥳": "excited", "😜": "excited", "🤪": "excited",
+    "😎": "confident", "😤": "frustrated",
+    # sad
+    "😢": "sad", "😭": "sad", "😔": "sad", "☹": "sad", "🙁": "sad",
+    "😿": "sad", "😥": "sad", "💔": "hurt", "😞": "dejected",
+    "😒": "resigned",
+    # angry
+    "😡": "angry", "😠": "angry", "👿": "angry", "🤬": "outraged",
+    # fear / anxiety
+    "😨": "scared", "😱": "panicked", "😰": "anxious",
+    "😟": "anxious", "😬": "anxious", "😓": "anxious",
+    # surprise
+    "😮": "surprised", "😯": "surprised", "😳": "surprised",
+    "😲": "amazed", "🤯": "amazed",
+    # calm / tired
+    "🧘": "peaceful", "😴": "tired", "😪": "tired", "🥱": "bored",
+    "😑": "bored", "😐": "neutral",
+    # disgust / confusion
+    "🤢": "disgusted", "🤮": "disgusted", "😖": "disgusted",
+    "😕": "confused", "😵": "confused", "🤔": "contemplative",
+    # misc
+    "🙏": "grateful", "🏆": "triumphant", "💪": "determined",
+    "🤞": "anticipation",
+}
+
+_EMOJI_KEYS = sorted(EMOJI_EMOTION, key=len, reverse=True)
+EMOJI_EMOTION_RE = re.compile("|".join(re.escape(k) for k in _EMOJI_KEYS))
+EMO_TAG_RE = re.compile(r"\[([A-Za-z]{3,})\]")
+
+
+def _emoji_emotion(emoji):
+    return EMOJI_EMOTION.get(emoji) or EMOJI_EMOTION.get(
+        emoji.replace("\ufe0f", ""))
+
+
+def parse_emotion_blocks(text, base="neutral"):
+    """Split text into [(emotion, text)] using inline [Emotion] tags and emoji.
+
+    A [Tag] applies to the text that follows it until the next [Tag]; the tag
+    is removed from the spoken text. An emoji colours the whole sentence it
+    sits in (the emoji is removed). Text with no markers is returned unchanged
+    as a single block, so behaviour is identical when the feature is unused.
+    """
+    has_tag = any(m.group(1).lower() in EMOTIONS
+                  for m in EMO_TAG_RE.finditer(text))
+    if not has_tag and not EMOJI_EMOTION_RE.search(text):
+        return [(base, text)]
+
+    spans, cur, pos = [], base, 0
+    for m in EMO_TAG_RE.finditer(text):
+        tag = m.group(1).lower()
+        if tag not in EMOTIONS:
+            continue
+        chunk = text[pos:m.start()]
+        if chunk.strip():
+            spans.append((cur, chunk))
+        cur, pos = tag, m.end()
+    tail = text[pos:]
+    if tail.strip():
+        spans.append((cur, tail))
+
+    blocks = []
+    for emo, span in spans:
+        for sent in SENTENCE_SPLIT_RE.split(span):
+            if not sent.strip():
+                continue
+            found = EMOJI_EMOTION_RE.findall(sent)
+            if found:
+                emo2 = _emoji_emotion(found[-1]) or emo
+                sent = EMOJI_EMOTION_RE.sub("", sent)
+            else:
+                emo2 = emo
+            sent = re.sub(r"\s+", " ", sent).strip()
+            if sent:
+                blocks.append((emo2, sent))
+
+    merged = []
+    for emo, txt in blocks:
+        if merged and merged[-1][0] == emo:
+            merged[-1] = (emo, merged[-1][1] + " " + txt)
+        else:
+            merged.append((emo, txt))
+    return merged or [(base, text)]
 
 EXIT_ERROR = 1
 EXIT_USAGE = 2
@@ -465,6 +579,36 @@ def synthesize_text(text, language, model, voice_id, fmt, speed, volume,
     return out, len(chunks), hits
 
 
+def synthesize_blocks(blocks, language, model, voice_id, fmt, speed, volume,
+                      timeout, retries, use_cache, force, tmpdir,
+                      chunk_limit=None):
+    """Synthesize ordered [(emotion, text)] blocks, then merge.
+
+    Each block is synthesized with its own emotion (same voice/settings), so a
+    passage can change feeling mid-way. Returns (path, chunks, hits).
+    """
+    paths, chunks, hits = [], 0, 0
+    for emo, text in blocks:
+        path, n, h = synthesize_text(
+            text, language, model, voice_id, fmt, speed, volume, emo,
+            timeout, retries, use_cache, force, tmpdir, chunk_limit)
+        paths.append(path)
+        chunks += n
+        hits += h
+    if len(paths) == 1:
+        return paths[0], chunks, hits
+    merged_dir = (CACHE_DIR / "merged") if use_cache else Path(tmpdir)
+    merged_dir.mkdir(parents=True, exist_ok=True)
+    key = hashlib.sha256((
+        "|".join(f"{e}:{t}" for e, t in blocks)
+        + f"|{language}|{voice_id}|{model}|{fmt}|{speed}|{volume}"
+    ).encode("utf-8")).hexdigest()[:32]
+    out = merged_dir / f"{key}.{fmt}"
+    if not (use_cache and not force and out.exists() and out.stat().st_size > 100):
+        concat_files(paths, out)
+    return out, chunks, hits
+
+
 # --------------------------------------------------------------------------- #
 # ffmpeg helpers
 # --------------------------------------------------------------------------- #
@@ -747,11 +891,16 @@ def parse_map(spec):
     return mapping
 
 
-def parse_script(path, known_labels=None, raw=False):
-    """Return [(speaker_or_None, text)] from a 'Speaker: text' script."""
+def parse_script(path, known_labels=None, raw=False, keep_markers=False):
+    """Return [(speaker_or_None, text)] from a 'Speaker: text' script.
+
+    keep_markers=True preserves inline [Emotion] tags and emoji so the caller
+    can map them to per-segment emotions.
+    """
     segs = []
     for raw_line in Path(path).read_text(encoding="utf-8").splitlines():
-        line = normalize_text(raw_line.strip(), raw=raw)
+        src = raw_line.strip()
+        line = src if keep_markers else normalize_text(src, raw=raw)
         if not line:
             continue
         m = SPEAKER_RE.match(line)
@@ -759,7 +908,8 @@ def parse_script(path, known_labels=None, raw=False):
             label, text = m.group(1), m.group(2)
         else:
             label, text = None, line
-        text = clean_text(text)
+        text = (re.sub(r"\s+", " ", text).strip() if keep_markers
+                else clean_text(text))
         if text:
             segs.append((label, text))
     return segs
@@ -1321,11 +1471,14 @@ def default_out(prefix, key, fmt):
     return f"{prefix}_{digest}.{fmt}"
 
 
-def read_text_arg(args):
+def read_raw_text(args):
     if getattr(args, "text_file", None):
-        text = Path(args.text_file).read_text(encoding="utf-8")
-    else:
-        text = " ".join(args.text or [])
+        return Path(args.text_file).read_text(encoding="utf-8")
+    return " ".join(args.text or [])
+
+
+def read_text_arg(args):
+    text = read_raw_text(args)
     return clean_text(normalize_text(text, raw=getattr(args, "raw", False)))
 
 
@@ -1339,8 +1492,8 @@ def _resolve_style(args, preset):
 
 
 def cmd_tts(args, uid_mode=False):
-    text = read_text_arg(args)
-    if not text:
+    raw = read_raw_text(args)
+    if not raw.strip():
         raise TtsError("No text provided (pass text or --text-file).",
                        code=EXIT_VALIDATION)
     preset = get_preset(args.preset) if args.preset else None
@@ -1355,7 +1508,7 @@ def cmd_tts(args, uid_mode=False):
                            code=EXIT_VALIDATION)
         voice_id = args.voice_id
     else:
-        language = args.language or detect_language(text)
+        language = args.language or detect_language(raw)
         if not args.no_validate:
             validate_language(language)
             validate_model(args.model)
@@ -1366,7 +1519,21 @@ def cmd_tts(args, uid_mode=False):
         voice_id = resolve_voice(language, spec)
 
     speed, volume, emotion = _resolve_style(args, preset)
-    chunks = split_chunks(text, args.chunk_limit)
+    if getattr(args, "no_emotion", False):
+        blocks = [(emotion, clean_text(normalize_text(raw, raw=args.raw)))]
+    else:
+        blocks = []
+        for emo, frag in parse_emotion_blocks(raw, emotion):
+            t = clean_text(normalize_text(frag, raw=args.raw))
+            if t:
+                blocks.append((emo, t))
+        if not blocks:
+            blocks = [(emotion,
+                       clean_text(normalize_text(raw, raw=args.raw)))]
+    text = " ".join(t for _, t in blocks)
+    multi = len({e for e, _ in blocks}) > 1
+    chunks = (sum(len(split_chunks(t, args.chunk_limit)) for _, t in blocks)
+              if multi else len(split_chunks(text, args.chunk_limit)))
     key = f"{language}|{voice_id}|{args.model}|{speed}|{text}"
     out = Path(args.out or default_out("tts", key, args.format))
 
@@ -1374,22 +1541,35 @@ def cmd_tts(args, uid_mode=False):
         plan = {
             "command": "tts", "language": language, "voice_id": voice_id,
             "model": args.model, "speed": speed, "volume": volume,
-            "emotion": emotion, "chunks": len(chunks), "requests": len(chunks),
+            "emotion": emotion, "chunks": chunks, "requests": chunks,
             "out": str(out), "text_chars": len(text),
         }
+        if multi:
+            plan["emotions"] = [[e, t] for e, t in blocks]
         if JSON_OUT:
             emit(plan)
         else:
             log(f"DRY RUN: {plan['requests']} request(s), language={language}, "
                 f"voice={voice_id}, chunks={plan['chunks']} -> {out}")
+            if multi:
+                log("Emotions: " + ", ".join(e for e, _ in blocks))
         return
 
     with tempfile.TemporaryDirectory(prefix="speakee-") as tmp:
-        path, nchunks, hits = synthesize_text(
-            text, language, args.model, voice_id, args.format, speed, volume,
-            emotion, args.timeout, args.retries, use_cache=not args.no_cache,
-            force=args.force, tmpdir=tmp if args.no_cache else None,
-            chunk_limit=args.chunk_limit)
+        if multi:
+            path, nchunks, hits = synthesize_blocks(
+                blocks, language, args.model, voice_id, args.format, speed,
+                volume, args.timeout, args.retries,
+                use_cache=not args.no_cache, force=args.force,
+                tmpdir=tmp if args.no_cache else None,
+                chunk_limit=args.chunk_limit)
+        else:
+            path, nchunks, hits = synthesize_text(
+                text, language, args.model, voice_id, args.format, speed,
+                volume, blocks[0][0], args.timeout, args.retries,
+                use_cache=not args.no_cache, force=args.force,
+                tmpdir=tmp if args.no_cache else None,
+                chunk_limit=args.chunk_limit)
         out.parent.mkdir(parents=True, exist_ok=True)
         if Path(path).resolve() != out.resolve():
             shutil.copyfile(path, out)
@@ -1398,14 +1578,17 @@ def cmd_tts(args, uid_mode=False):
     qa = None if args.no_verify else run_qa(out)
     info = probe_info(out)
     if JSON_OUT:
-        emit({
+        payload = {
             "command": "tts", "out": str(out), "language": language,
             "voice_id": voice_id, "model": args.model, "speed": speed,
             "chunks": nchunks, "cache_hits": hits,
             "duration_s": info.get("duration_s"),
             "size_bytes": info.get("size_bytes"),
             "qa": qa,
-        })
+        }
+        if multi:
+            payload["emotions"] = [[e, t] for e, t in blocks]
+        emit(payload)
     else:
         log(f"OUT: {out} ({nchunks} chunk(s), "
             f"{info.get('duration_s', 0):.1f}s, "
@@ -1425,19 +1608,33 @@ def cmd_conversation(args):
     preset = get_preset(args.preset) if args.preset else None
     mapping = parse_map(args.map)
     known = set(mapping.keys()) or None
-    segs = parse_script(args.script, known, raw=args.raw)
+    speed, volume, emotion = _resolve_style(args, preset)
+    detect = not getattr(args, "no_emotion", False)
+    authored = parse_script(args.script, known, raw=args.raw,
+                            keep_markers=detect)
+    segs = []
+    for label, rawtext in authored:
+        if detect:
+            for emo, frag in parse_emotion_blocks(rawtext, emotion):
+                t = clean_text(normalize_text(frag, raw=args.raw))
+                if t:
+                    segs.append((label, t, emo))
+        else:
+            t = clean_text(normalize_text(rawtext, raw=args.raw))
+            if t:
+                segs.append((label, t, emotion))
     if not segs:
         raise TtsError(f"No dialogue found in {args.script}",
                        code=EXIT_VALIDATION)
 
-    language = args.language or detect_language(" ".join(t for _, t in segs[:25]))
+    language = args.language or detect_language(
+        " ".join(t for _, t, _ in segs[:25]))
     if not args.no_validate:
         validate_language(language)
         validate_model(args.model)
 
-    speed, volume, emotion = _resolve_style(args, preset)
     labels = []
-    for label, _ in segs:
+    for label, _, _ in segs:
         if label not in labels:
             labels.append(label)
 
@@ -1481,15 +1678,17 @@ def cmd_conversation(args):
         else:
             _seen[vid] = disp
 
-    total_chunks = sum(len(split_chunks(t, args.chunk_limit)) for _, t in segs)
+    total_chunks = sum(len(split_chunks(t, args.chunk_limit))
+                       for _, t, _ in segs)
     out = Path(args.out or default_out(
-        "conversation", "|".join(t for _, t in segs), "mp3"))
+        "conversation", "|".join(t for _, t, _ in segs), "mp3"))
 
     if args.dry_run:
         plan = {
             "command": "conversation", "language": language,
             "model": args.model, "speed": speed, "segments": len(segs),
             "chunks": total_chunks, "requests": total_chunks,
+            "emotions": sorted({e for _, _, e in segs}),
             "voices": {(k if k is not None else "narrator"): v
                         for k, v in voice_ids.items()},
             "out": str(out), "srt": args.srt, "manifest": args.manifest,
@@ -1508,10 +1707,10 @@ def cmd_conversation(args):
         results = [None] * len(segs)
 
         def job(idx):
-            label, text = segs[idx]
+            label, text, emo = segs[idx]
             return idx, synthesize_text(
                 text, language, args.model, voice_ids[label], args.format,
-                speed, volume, emotion, args.timeout, args.retries,
+                speed, volume, emo, args.timeout, args.retries,
                 use_cache, args.force, tmpdir, args.chunk_limit)
 
         workers = max(1, args.workers)
@@ -1535,8 +1734,9 @@ def cmd_conversation(args):
             "speed": speed,
             "segments": [
                 {"index": i, "speaker": (lab if lab is not None else "narrator"),
-                 "voice_id": voice_ids[lab], "text": text, "file": str(path)}
-                for i, ((lab, text), path) in enumerate(zip(segs, results))
+                 "voice_id": voice_ids[lab], "emotion": emo, "text": text,
+                 "file": str(path)}
+                for i, ((lab, text, emo), path) in enumerate(zip(segs, results))
             ],
         }
         if args.manifest:
@@ -1547,7 +1747,7 @@ def cmd_conversation(args):
 
         if args.srt:
             entries, durations_ok = [], True
-            for (lab, text), path in zip(segs, results):
+            for (lab, text, _), path in zip(segs, results):
                 duration = probe_duration(path)
                 durations_ok = durations_ok and duration > 0
                 entries.append((lab if lab is not None else "narrator",
@@ -1561,7 +1761,7 @@ def cmd_conversation(args):
         if args.no_stitch:
             outdir = Path(args.out or "segments")
             outdir.mkdir(parents=True, exist_ok=True)
-            for i, ((lab, _), path) in enumerate(zip(segs, results)):
+            for i, ((lab, _, _), path) in enumerate(zip(segs, results)):
                 shutil.copyfile(path, outdir / f"{i:04d}_{lab or 'narrator'}.{args.format}")
             if JSON_OUT:
                 emit({"command": "conversation", "out": str(outdir),
@@ -1640,7 +1840,10 @@ def main():
         sp.add_argument("-s", "--speed", type=float, default=None,
                         help=f"0.5-2.0 (default {DEFAULT_SPEED})")
         sp.add_argument("--volume", type=float, default=None)
-        sp.add_argument("-e", "--emotion", default=None)
+        sp.add_argument("-e", "--emotion", default=None,
+                        help="base emotion (58 values, default neutral)")
+        sp.add_argument("--no-emotion", action="store_true",
+                        help="ignore inline [Emotion] tags and emoji")
         sp.add_argument("--preset", default=None,
                         help="built-in preset: news, story, assistant, audiobook")
         sp.add_argument("--chunk-limit", type=int, default=CHUNK_LIMIT,

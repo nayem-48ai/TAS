@@ -112,6 +112,8 @@ The repo also ships examples, a self-test, and a packaging script.
   leading/trailing/internal silence.
 - **Dialogue tools**: `--map`, `--silence`, `--loudnorm`, `--manifest`,
   `--srt`, `--no-stitch`.
+- **Inline emotions**: `[happy]`, `[sad]`, … tags and emoji switch emotion
+  mid-passage (per sentence), auto-split and merged; `--no-emotion` to disable.
 - **Text cleanup**: strips markdown, HTML, URLs, and emoji (`--raw` to keep).
 - **Presets**: `news`, `story`, `assistant`, `audiobook`.
 - **Automation**: `--dry-run`, `--json`, distinct exit codes.
@@ -196,7 +198,7 @@ Steps to follow, in order:
    ls <skills-dir>/tas/scripts/tas.py
    head -5 <skills-dir>/tas/SKILL.md   # must say: name: tas
 5. Verify it runs (needs only Python 3.9+, no pip, no model download):
-   python3 <skills-dir>/tas/scripts/tas.py version
+   python3 <skills-dir>/tas/scripts/tas.py --version
    python3 <skills-dir>/tas/scripts/tas.py languages | head -3
 6. Clean up the temp clone: rm -rf /tmp/TAS
 
@@ -278,6 +280,10 @@ python3 "$S" tts "Hey? কেমন আছো তোমরা সবাই?" -o 
 
 # Long markdown article, preset voice, auto-chunked
 python3 "$S" tts --text-file article.md -l en --preset news -o article.mp3
+
+# Inline emotions: tags persist until the next tag; an emoji colours its
+# sentence. The text is split per emotion, synthesized, and merged.
+python3 "$S" tts "Hey! How are you? [Sad] I heard about your father. 😢" -l en -o emo.mp3
 
 # Dialogue: human + AI must use DIFFERENT voices; a narrator/commenter line
 # (no "Speaker:" prefix) gets a 3rd voice via the special key `narrator`.

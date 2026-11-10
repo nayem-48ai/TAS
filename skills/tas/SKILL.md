@@ -213,9 +213,34 @@ AI: আপনার প্রশ্নটি গ্রহণ করা হয়
   the AI and the human different voices (and a 3rd voice for the narrator when a
   commenter/narrator line is present).
 - `--silence 0.35` gap between turns; `--loudnorm` normalizes to −16 LUFS.
-- `--manifest FILE` records every segment; `--srt FILE` writes subtitles.
+- `--manifest FILE` records every segment (including its emotion); `--srt FILE`
+  writes subtitles.
 - `--no-stitch` keeps individual segment files instead of one MP3.
 - `--workers` controls parallel requests (default 4).
+
+## Inline emotions (TTS + conversation)
+
+Emotion can change mid-passage. Put a tag or an emoji where the feeling
+changes; the script splits the text, synthesizes each part with its own
+`emotion`, and merges — the same voice throughout. Works in `tts`, `uid`, and
+`conversation` (per line).
+
+```text
+Hey! How are you?                    -> neutral
+[Sad] I heard about your father.     -> sad (tag applies until the next tag)
+আজ দারুণ খবর! 😊                    -> happy (emoji colours its sentence)
+গত সপ্তাহে বাবা মারা গেছেন। 💔        -> hurt
+```
+
+- `--emotion <name>` sets the base emotion; tags override it per block.
+- Tags: any of the 58 API emotions in `[brackets]`, e.g. `[happy]`, `[sad]`,
+  `[angry]`, `[excited]`, `[calm]`, `[surprised]`, `[tired]`. Case-insensitive.
+- Emoji are auto-mapped (😊 happy, 😢/😭 sad, 😡 angry, 😨 scared, 😮 surprised,
+  🥳 excited, 😌 serene, 😴 tired, 💔 hurt, 🙏 grateful, …). A sentence uses the
+  last emotion emoji found in it; the emoji is removed from the spoken text.
+- Unknown `[tags]` are left as literal text.
+- `--no-emotion` disables detection (tags/emoji are then handled as before).
+- Text with no tags/emoji is byte-for-byte unchanged (single request).
 
 ## Options (most used)
 
@@ -226,6 +251,8 @@ AI: আপনার প্রশ্নটি গ্রহণ করা হয়
 | `-v, --voice_id` | preset/default | voice name or UUID |
 | `-o, --out` | auto | output file / directory (`--no-stitch`) |
 | `-s, --speed` | `1.2` | 0.5–2.0 |
+| `-e, --emotion` | `neutral` | base emotion (58 values) |
+| `--no-emotion` | off | ignore inline `[tags]` / emoji |
 | `--preset` | — | `news`, `story`, `assistant`, `audiobook` |
 | `--chunk-limit` | `1200` | characters per request |
 | `--retries` | `4` | retries with exponential backoff |

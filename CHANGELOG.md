@@ -4,6 +4,21 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project uses semantic
 versioning.
 
+## [2.3.0] — 2026-11-10
+
+### Added
+
+- **Inline emotions** for `tts`, `uid`, and `conversation`: write `[happy]`,
+  `[sad]`, `[angry]`, … anywhere in the text, or use an emoji (😊 😢 😡 😨 😮
+  🥳 😌 😴 💔 🙏 …). The text is split where the feeling changes and each block
+  is synthesized with its own `emotion` (same voice), then merged.
+  - A `[Tag]` applies from its position until the next tag.
+  - An emoji colours the whole sentence it appears in (last emoji wins) and is
+    removed from the spoken text.
+  - Unknown `[tags]` stay literal; `--no-emotion` disables detection.
+  - Text with no markers produces byte-for-byte the same request as before.
+  - `conversation` manifests now record each segment's emotion.
+
 ## [2.2.2] — 2026-11-10
 
 ### Added
