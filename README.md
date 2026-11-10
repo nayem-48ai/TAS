@@ -125,13 +125,23 @@ Install straight from this repo — no manual file shuffling needed.
 
 ### One line (any agent — opencode, Claude Code, Codex, Cursor…)
 
+**Prerequisite:** Node.js / npm (for `npx`). No Node? Use **Clone the repo**
+below.
+
 ```bash
 npx skills add nayem-48ai/TAS
 ```
 
+Non-interactive (recommended for AI agents / CI — avoids the scope prompt):
+
+```bash
+npx -y skills add nayem-48ai/TAS -y -g
+```
+
 That fetches this repo, finds every skill under `skills/`, and installs them
-into the agent's skills directory. Then just ask for speech — the skill
-triggers automatically.
+into the agent's skills directory (`~/.agents/skills/tas`). Then just ask for
+speech — the skill triggers automatically. Load it by its name, **`tas`** (not
+`tts`).
 
 ### Clone the repo (manual)
 
@@ -183,9 +193,10 @@ python3 "$S" tts "Hey? কেমন আছো তোমরা সবাই?" -o 
 # Long markdown article, preset voice, auto-chunked
 python3 "$S" tts --text-file article.md -l en --preset news -o article.mp3
 
-# Dialogue with two voices, subtitles, and a manifest
+# Dialogue: human + AI must use DIFFERENT voices; a narrator/commenter line
+# (no "Speaker:" prefix) gets a 3rd voice via the special key `narrator`.
 python3 "$S" conversation dialog.txt -l bn \
-  --map "মানুষ=Nayem,AI=Pooja - Everyday Assistant" \
+  --map "narrator=News Reader,মানুষ=Nayem,AI=Pooja - Everyday Assistant" \
   --loudnorm --srt dialog.srt --manifest dialog.json \
   -o dialog.mp3
 
@@ -270,7 +281,10 @@ CI runs the offline self-test on Python 3.9, 3.11, and 3.13
 **Does it need an API key?** No.
 
 **Can it do multiple speakers?** Yes — `conversation` with `--map` or automatic
-voice assignment, parallel synthesis, one stitched file.
+voice assignment, parallel synthesis, one stitched file. Lines with no
+`Speaker:` prefix are the narrator/commenter and use a **3rd** voice via the
+special `narrator` key. If two speakers share a voice, the script prints a
+`WARNING` — map each speaker to a different voice.
 
 **What about long articles?** Automatic chunking at sentence boundaries with
 per-chunk caching and merging.

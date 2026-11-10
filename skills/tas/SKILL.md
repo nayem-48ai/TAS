@@ -35,8 +35,10 @@ NEVER install anything** (no whisper, no torch, no faster-whisper, no pip):
 ```
 
 Typical install locations:
-`~/.config/opencode/skills/tas/scripts/tas.py` (opencode) and
-`~/.claude/skills/tas/scripts/tas.py` (Claude Code).
+`~/.config/opencode/skills/tas/scripts/tas.py` (opencode),
+`~/.claude/skills/tas/scripts/tas.py` (Claude Code), and
+`~/.agents/skills/tas/scripts/tas.py` (the `skills` CLI, `npx skills add`).
+The skill is **name `tas`** — load it with the name `tas`, never `tts`.
 
 ## Non-negotiable rules (apply to EVERY request)
 
@@ -201,8 +203,15 @@ AI: আপনার প্রশ্নটি গ্রহণ করা হয়
 ```
 
 - Speaker labels are short tokens before `:` (≤16 chars, no spaces).
+- Lines with **no** `Speaker:` prefix are the narrator / commenter. The narrator
+  is mapped with the special key `narrator`, so a 3rd distinct voice is
+  `--map "narrator=VoiceC,মানুষ=VoiceA,AI=VoiceB"`.
 - `--map "speaker=voice"` accepts a voice name (fuzzy) or UUID.
 - Without `--map`, distinct voices are assigned automatically.
+- **Voices must be distinct.** If two speakers resolve to the same voice, the
+  script prints a `WARNING`; map each speaker to a different voice. Always give
+  the AI and the human different voices (and a 3rd voice for the narrator when a
+  commenter/narrator line is present).
 - `--silence 0.35` gap between turns; `--loudnorm` normalizes to −16 LUFS.
 - `--manifest FILE` records every segment; `--srt FILE` writes subtitles.
 - `--no-stitch` keeps individual segment files instead of one MP3.

@@ -48,7 +48,7 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-VERSION = "2.2.0"
+VERSION = "2.2.1"
 
 BASE = os.environ.get("SPEAKEE_BASE", "https://speakee.tnxbd.top").rstrip("/")
 DEFAULT_MODEL = "sonic-3.5"
@@ -143,6 +143,11 @@ def emit(obj):
 def note(*args):
     """Status/progress output that never pollutes transcript stdout."""
     print(*args, file=sys.stderr, flush=True)
+
+
+def warn(*args):
+    """Warning line (always stderr, prefixed) — never breaks machine output."""
+    print("WARNING:", *args, file=sys.stderr, flush=True)
 
 
 # --------------------------------------------------------------------------- #
@@ -1465,6 +1470,16 @@ def cmd_conversation(args):
     for label in labels:
         voice_ids.setdefault(label, DEFAULT_VOICE)
         log(f"  {label if label is not None else '(narrator)'} -> {voice_ids[label]}")
+    _seen = {}
+    for label in labels:
+        vid = voice_ids[label]
+        disp = label if label is not None else "narrator"
+        if vid in _seen and _seen[vid] != disp:
+            warn(f"'{_seen[vid]}' and '{disp}' share voice {vid}: "
+                 f"voices are NOT distinct. Map each speaker to a different "
+                 f"voice with --map (e.g. --map \"narrator=VoiceA,{disp}=VoiceB\").")
+        else:
+            _seen[vid] = disp
 
     total_chunks = sum(len(split_chunks(t, args.chunk_limit)) for _, t in segs)
     out = Path(args.out or default_out(

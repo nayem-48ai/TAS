@@ -4,6 +4,24 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project uses semantic
 versioning.
 
+## [2.2.1] — 2026-11-10
+
+### Added
+
+- `conversation` now prints a `WARNING` when two speakers resolve to the same
+  voice, so AI vs. human (and narrator/commenter) always get **distinct**
+  voices. Map each speaker to a different voice with `--map`.
+
+### Fixed / documented
+
+- `SKILL.md`: narrator/commenter (unprefixed lines) is mapped with the special
+  key `narrator`; documented the 3rd-voice example and the distinct-voice rule.
+- `SKILL.md`: install locations now include `~/.agents/skills/tas` (the
+  `npx skills add` path); noted the skill name is `tas` (never `tts`).
+- `README.md`: non-interactive install `npx -y skills add nayem-48ai/TAS -y -g`
+  (avoids the scope prompt in headless agents), plus the Node/npm prerequisite
+  and the `git clone` fallback when Node is unavailable.
+
 ## [2.2.0] — 2026-11-10
 
 ### Changed
