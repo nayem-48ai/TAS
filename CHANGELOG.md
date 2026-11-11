@@ -4,6 +4,35 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project uses semantic
 versioning.
 
+## [1.0.0] — 2026-11-11
+
+First public release.
+
+### Added
+
+- **Offline voice fallback** for `bn`, `en`, `hi`: `voices()` and `models()`
+  use bundled data when the API is unreachable, so voice-name resolution works
+  without network.
+- **Connection preflight**: `tts`, `conversation`, and `stt` fail fast with an
+  actionable message when the API host is blocked (e.g. sandbox DNS
+  allow-lists) instead of retrying blindly.
+- **`manifest.json`** in the skill package.
+- **Sandbox guidance** in SKILL.md and `references/troubleshooting.md`.
+
+### Fixed
+
+- Skill zip structure: one top-level `tas/` folder with `SKILL.md` inside, as
+  required by claude.ai uploads.
+- SKILL.md frontmatter uses only `name`, `description`, `license` (unknown
+  keys such as `version` removed).
+- Version numbers synced to `1.0.0` across VERSION, `tas.py`, `manifest.json`.
+- Model list docs updated: `sonic-3.6`, `sonic-preview`, `sonic-3.5`,
+  `sonic-3` (removed sunsetted `sonic-turbo` / `sonic-2`).
+- `$S` is defined in SKILL.md examples; claude.ai install path documented.
+- `references/troubleshooting.md`: removed non-existent `--word-timestamps`
+  flag, clarified `--silence` is a conversation-mode flag.
+- Aman Sens added to recommended Bengali voices.
+
 ## [2.3.2] — 2026-11-10
 
 ### Added

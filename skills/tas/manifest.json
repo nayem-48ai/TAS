@@ -1,7 +1,7 @@
 {
   "name": "tas",
   "description": "Convert text to speech (40+ languages) and transcribe audio/video with SRT/VTT subtitles using the Speakee API. Supports single-voice TTS, multi-speaker conversations, inline emotions, and voice customization.",
-  "version": "2.3.1",
+  "version": "1.0.0",
   "author": "nayem-48ai",
   "license": "MIT",
   "commands": {

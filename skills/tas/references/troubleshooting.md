@@ -4,6 +4,7 @@
 
 | Symptom | Cause | Fix |
 |---|---|---|
+| `Cannot reach https://speakee.tnxbd.top` / `Name or service not known` | sandbox blocks the domain (DNS allow-list) | add `speakee.tnxbd.top` to allowed domains, or run the skill in Claude Code / opencode / a local shell |
 | `Unsupported language 'xx'` | invalid code | `languages`, then use a valid code |
 | `No voice matching ...` | wrong name/language | `voices -l <code>` or pass the UUID |
 | `Ambiguous voice ...` | fuzzy name matches many | pass the exact UUID |
@@ -13,6 +14,15 @@
 | `ffmpeg not found` | no ffmpeg | install ffmpeg or use `--no-stitch` |
 | `could not decode audio` | corrupt/empty file | regenerate with `--force` |
 | `--srt skipped` | no ffprobe | install ffmpeg/ffprobe |
+
+## Sandboxed agents (claude.ai, CI runners)
+
+The script needs outbound HTTPS to `speakee.tnxbd.top`. Some sandboxes allow
+only a fixed domain list (`pypi.org`, `github.com`, `npmjs.org`, …), so DNS
+fails with `Name or service not known`. The script detects this up front and
+prints `Cannot reach https://speakee.tnxbd.top …`. Do not retry or rewrite the
+script — either allow the domain in the sandbox settings, or run the skill in
+an environment without a domain allow-list.
 
 ## STT-specific failure modes
 
@@ -24,8 +34,8 @@
 - **Low confidence language detection** – auto-detection confidence < 0.5 on short clips. Pass `-l <code>` to force a language.
 - **Empty transcript** – file too short (< 1 s) or contains no speech. Use `--no-verify` for testing, then verify manually.
 - **Upload too large** – files > ~4.5 MB exceed the API limit. Split long recordings with `--chunk-seconds` or use `--no-chunk`.
-- **Silence detection issues** – ffmpeg may misclassify silence, causing chunks to be too small. Adjust `--silence` parameter or ensure audio has clear gaps.
-- **Word timestamps not generated** – when `--no-word-timestamps` is used, only text is returned. Re-enable timestamps with `--word-timestamps`.
+- **Silence detection issues** – ffmpeg may misclassify silence, causing chunks to be too small. Adjust `--silence` (conversation mode) or ensure audio has clear gaps.
+- **Word timestamps not generated** – word timestamps are on by default; only `--no-word-timestamps` turns them off. There is no `--word-timestamps` flag — omit the `--no-` flag to keep them.
 - **Audio QA fails** – low loudness or clipping. The script runs `ebur128` QA; if it fails, check the transcript for obvious issues.
 - **Bengali chunks time out silently** – the server is slower for Bengali; a 5-chunk parallel run can die after chunk 1 with no error. Use `--workers 1 --timeout 600 --retries 3` for long Bengali recordings.
 - **Agent tries to `pip install whisper`** – **do not allow it.** The bundled

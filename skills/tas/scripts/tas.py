@@ -306,6 +306,32 @@ def _get_json(path, timeout=30):
         return json.load(r)
 
 
+_ONLINE = None
+
+
+def ensure_online():
+    """Fail fast with an actionable message when the API is unreachable."""
+    global _ONLINE
+    if _ONLINE:
+        return
+    try:
+        urllib.request.urlopen(
+            urllib.request.Request(
+                BASE + "/api/models",
+                headers={"User-Agent": f"speakee-tas-skill/{VERSION}"}),
+            timeout=15)
+        _ONLINE = True
+    except urllib.error.HTTPError:
+        _ONLINE = True
+    except Exception as e:
+        raise TtsError(
+            f"Cannot reach {BASE} ({e}). The sandbox network may be blocking "
+            f"this domain. Ask the user to allow '{urllib.parse.urlparse(BASE).hostname}' "
+            f"in the sandbox's allowed domains, or run the skill in Claude Code, "
+            f"opencode, or a local shell where there is no domain allow-list.",
+            code=EXIT_NETWORK) from None
+
+
 def languages():
     global _LANG_CACHE
     if _LANG_CACHE is None:
@@ -1296,6 +1322,7 @@ def render_vtt_cues(cues):
 
 
 def cmd_stt(args, subtitle=False):
+    ensure_online()
     src = Path(args.file)
     if not src.exists():
         raise TtsError(f"File not found: {src}", code=EXIT_VALIDATION)
@@ -1529,6 +1556,8 @@ def cmd_tts(args, uid_mode=False):
     if not raw.strip():
         raise TtsError("No text provided (pass text or --text-file).",
                        code=EXIT_VALIDATION)
+    if not args.dry_run:
+        ensure_online()
     preset = get_preset(args.preset) if args.preset else None
 
     if uid_mode:
@@ -1638,6 +1667,8 @@ def _dedupe_voices(items):
 
 
 def cmd_conversation(args):
+    if not args.dry_run:
+        ensure_online()
     preset = get_preset(args.preset) if args.preset else None
     mapping = parse_map(args.map)
     known = set(mapping.keys()) or None

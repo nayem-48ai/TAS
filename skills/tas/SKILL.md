@@ -1,6 +1,5 @@
 ---
 name: tas
-version: 1.0.0
 description: >-
   Convert text into spoken audio AND transcribe audio/video back into text and
   subtitles using the Speakee API. This skill does BOTH text-to-speech (TTS:
@@ -35,11 +34,27 @@ NEVER install anything** (no whisper, no torch, no faster-whisper, no pip):
 <skill base dir>/scripts/tas.py
 ```
 
+Set it once at the start of a session and use `$S` in every command:
+
+```bash
+S="<skill base dir>/scripts/tas.py"
+```
+
 Typical install locations:
 `~/.config/opencode/skills/tas/scripts/tas.py` (opencode),
-`~/.claude/skills/tas/scripts/tas.py` (Claude Code), and
-`~/.agents/skills/tas/scripts/tas.py` (the `skills` CLI, `npx skills add`).
+`~/.claude/skills/tas/scripts/tas.py` (Claude Code),
+`~/.agents/skills/tas/scripts/tas.py` (the `skills` CLI, `npx skills add`),
+and `/mnt/skills/plugins/tas/scripts/tas.py` (claude.ai sandbox).
 The skill is **name `tas`** — load it with the name `tas`, never `tts`.
+
+## Network requirement
+
+The script talks to `https://speakee.tnxbd.top`. In sandboxed environments
+(claude.ai code execution), outbound DNS may be restricted to an allow-list.
+If `speakee.tnxbd.top` is not allowed, every request fails with
+`Name or service not known`. Fix: add `speakee.tnxbd.top` to the sandbox's
+allowed domains, or run the skill in Claude Code / opencode / a local shell
+where there is no domain allow-list. Do not retry blindly — tell the user.
 
 ## Non-negotiable rules (apply to EVERY request)
 
@@ -67,6 +82,11 @@ The skill is **name `tas`** — load it with the name `tas`, never `tts`.
     is unreliable (Whisper confuses Bengali/Gujarati); `-l bn` is required for
     correct Bengali.
 12. **Use `--json`** when another tool or script consumes the result.
+13. **On network failure, stop and report.** If the script prints
+    `Cannot reach speakee.tnxbd.top` (DNS / `Name or service not known`), do
+    not retry, do not rewrite the script, do not `pip install` anything. Tell
+    the user the sandbox is blocking the domain and how to allow it, or to run
+    the skill locally.
 
 ## Single voice first — pick the right mode
 
@@ -273,7 +293,7 @@ Hey! How are you?                    -> neutral
 | Flag | Default | Meaning |
 |---|---|---|
 | `-l, --language` | auto-detect | ISO code or `uid` |
-| `-m, --model` | `sonic-3.5` | `sonic-3.5` / `sonic-3` / `sonic-turbo` / `sonic-2` |
+| `-m, --model` | `sonic-3.5` | `sonic-3.6` / `sonic-preview` / `sonic-3.5` / `sonic-3` |
 | `-v, --voice_id` | preset/default | voice name or UUID |
 | `-o, --out` | auto | output file / directory (`--no-stitch`) |
 | `-s, --speed` | `1.2` | 0.5–2.0 |
